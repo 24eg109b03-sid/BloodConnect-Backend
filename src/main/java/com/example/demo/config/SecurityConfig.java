@@ -34,43 +34,21 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .formLogin(formLogin -> formLogin.disable())
             .httpBasic(httpBasic -> httpBasic.disable())
-
             .sessionManagement(session ->
-                session.sessionCreationPolicy(
-                    SessionCreationPolicy.STATELESS
-                )
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
-
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
+                .requestMatchers("/users/register", "/users/login").permitAll()
+                .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/users/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
                 .requestMatchers(
-                    "/users/register",
-                    "/users/login"
+                    "/", "/index.html", "/register.html", "/dashboard.html",
+                    "/css/**", "/js/**", "/assets/**"
                 ).permitAll()
-
-                .requestMatchers(HttpMethod.GET, "/users")
-                    .hasRole("ADMIN")
-
-                .requestMatchers(HttpMethod.PUT, "/users/**")
-                    .hasRole("ADMIN")
-
-                .requestMatchers(HttpMethod.DELETE, "/users/**")
-                    .hasRole("ADMIN")
-
-                .requestMatchers(
-                    "/",
-                    "/index.html",
-                    "/register.html",
-                    "/dashboard.html",
-                    "/css/**",
-                    "/js/**",
-                    "/assets/**"
-                ).permitAll()
-
                 .anyRequest().authenticated()
             )
-
             .addFilterBefore(
                 jwtAuthenticationFilter,
                 UsernamePasswordAuthenticationFilter.class
@@ -95,24 +73,19 @@ public class SecurityConfig {
                 "GET",
                 "POST",
                 "PUT",
+                "PATCH",
                 "DELETE",
                 "OPTIONS"
             )
         );
 
-        configuration.setAllowedHeaders(
-            Arrays.asList("*")
-        );
-
+        configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source =
             new UrlBasedCorsConfigurationSource();
 
-        source.registerCorsConfiguration(
-            "/**",
-            configuration
-        );
+        source.registerCorsConfiguration("/**", configuration);
 
         return source;
     }
