@@ -1,4 +1,3 @@
-
 package com.example.demo.config;
 
 import java.util.Arrays;
@@ -27,56 +26,94 @@ public class SecurityConfig {
     }
 
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        configuration.setAllowedOrigins(
-                Arrays.asList("https://bloodconnect-frontend.netlify.app")
-        );
-
-        configuration.setAllowedMethods(
-                Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-        );
-
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowCredentials(false);
-
-        UrlBasedCorsConfigurationSource source =
-                new UrlBasedCorsConfigurationSource();
-
-        source.registerCorsConfiguration("/**", configuration);
-
-        return source;
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http)
             throws Exception {
 
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> {})
             .csrf(csrf -> csrf.disable())
             .formLogin(formLogin -> formLogin.disable())
             .httpBasic(httpBasic -> httpBasic.disable())
+
             .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                session.sessionCreationPolicy(
+                    SessionCreationPolicy.STATELESS
+                )
+            )
+
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/users/register", "/users/login").permitAll()
-                .requestMatchers(HttpMethod.GET, "/users").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PUT, "/users/**").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/users/**").hasRole("ADMIN")
+
                 .requestMatchers(
-                    "/", "/index.html", "/register.html",
-                    "/dashboard.html", "/css/**", "/js/**", "/assets/**"
+                    "/users/register",
+                    "/users/login"
                 ).permitAll()
+
+                .requestMatchers(HttpMethod.GET, "/users")
+                    .hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.PUT, "/users/**")
+                    .hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.DELETE, "/users/**")
+                    .hasRole("ADMIN")
+
+                .requestMatchers(
+                    "/",
+                    "/index.html",
+                    "/register.html",
+                    "/dashboard.html",
+                    "/css/**",
+                    "/js/**",
+                    "/assets/**"
+                ).permitAll()
+
                 .anyRequest().authenticated()
             )
+
             .addFilterBefore(
-                    jwtAuthenticationFilter,
-                    UsernamePasswordAuthenticationFilter.class
+                jwtAuthenticationFilter,
+                UsernamePasswordAuthenticationFilter.class
             );
 
         return http.build();
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        configuration.setAllowedOrigins(
+            Arrays.asList(
+                "https://bloodconnect-frontend.netlify.app"
+            )
+        );
+
+        configuration.setAllowedMethods(
+            Arrays.asList(
+                "GET",
+                "POST",
+                "PUT",
+                "DELETE",
+                "OPTIONS"
+            )
+        );
+
+        configuration.setAllowedHeaders(
+            Arrays.asList("*")
+        );
+
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source =
+            new UrlBasedCorsConfigurationSource();
+
+        source.registerCorsConfiguration(
+            "/**",
+            configuration
+        );
+
+        return source;
     }
 }
